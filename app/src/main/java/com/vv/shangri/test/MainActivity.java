@@ -1,7 +1,7 @@
 package com.vv.shangri.test;
 
-import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
@@ -15,9 +15,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.vv.shangri.mediarecorder.AudioFileFunc;
-import com.vv.shangri.mediarecorder.ErrorCode;
-import com.vv.shangri.mediarecorder.MyMediaRecorder;
+import com.vv.shangri.mediarecorder.IMMediaRecorder;
 import com.vv.shangri.mediarecorder.MyPlayer;
 
 
@@ -145,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
             Message msg = new Message();
             Bundle b = new Bundle();// 存放数据
             b.putInt("cmd", CMD_RECORDFAIL);
-            b.putInt("msg", ErrorCode.E_STATE_RECODING);
+            b.putInt("msg", IMMediaRecorder.getInstance().E_STATE_RECODING);
             msg.setData(b);
             Log.i(TAG, "mState != -1");
             uiHandler.sendMessage(msg); // 向Handler发送消息,更新UI
@@ -158,11 +156,11 @@ public class MainActivity extends AppCompatActivity {
                 //mResult = mRecord_1.startRecordAndFile();
                 break;
             case FLAG_AMR:
-                MyMediaRecorder mRecord_2 = MyMediaRecorder.getInstance();
+                IMMediaRecorder mRecord_2 = IMMediaRecorder.getInstance();
                 mResult = mRecord_2.startRecordAndFile();
                 break;
         }
-        if (mResult == ErrorCode.SUCCESS) {
+        if (mResult == IMMediaRecorder.getInstance().SUCCESS) {
             uiThread = new UIThread();
             new Thread(uiThread).start();
             mState = mFlag;
@@ -188,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                     //mRecord_1.stopRecordAndFile();
                     break;
                 case FLAG_AMR:
-                    MyMediaRecorder mRecord_2 = MyMediaRecorder.getInstance();
+                    IMMediaRecorder mRecord_2 = IMMediaRecorder.getInstance();
                     mRecord_2.stopRecordAndFile();
                     break;
             }
@@ -229,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case CMD_RECORDFAIL:
                     int vErrorCode = b.getInt("msg");
-                    String vMsg = ErrorCode.getErrorInfo(MainActivity.this, vErrorCode);
+                    String vMsg = IMMediaRecorder.getInstance().getErrorInfo(MainActivity.this, vErrorCode);
                     MainActivity.this.txt.setText("录音失败：" + vMsg);
                     break;
                 case CMD_STOP:
@@ -241,10 +239,12 @@ public class MainActivity extends AppCompatActivity {
                             //MainActivity.this.txt.setText("录音已停止.录音文件:" + AudioFileFunc.getWavFilePath() + "\n文件大小：" + mSize);
                             break;
                         case FLAG_AMR:
-                            MyMediaRecorder mRecord_2 = MyMediaRecorder.getInstance();
-                            long mSize = mRecord_2.getRecordFileSize();
-                            MainActivity.this.txt.setText("录音已停止.录音文件:" + AudioFileFunc.getAMRFilePath() + "\n文件大小：" + mSize);
-                            mPath = AudioFileFunc.getAMRFilePath();
+                            IMMediaRecorder mRecord_2 = IMMediaRecorder.getInstance();
+                            long mSize = mRecord_2.getRecordFileSize(mRecord_2.getAMRFilePath());
+                            MainActivity.this.txt.setText("录音已停止.录音文件:"
+                                                          + mRecord_2.getAMRFilePath()
+                                                          + "\n文件大小：" + mSize);
+                            mPath = mRecord_2.getAMRFilePath();
                             break;
                     }
                     break;

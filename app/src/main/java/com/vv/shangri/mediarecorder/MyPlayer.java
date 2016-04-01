@@ -12,7 +12,7 @@ public class MyPlayer {
     private String path = "";
 
     private MediaPlayer mPlayer = null;
-    public MyPlayer(String path){
+    public MyPlayer(String path) {
         this.path = path;
         mPlayer = new MediaPlayer();
         mPlayer.setOnCompletionListener(player_completionLis);
