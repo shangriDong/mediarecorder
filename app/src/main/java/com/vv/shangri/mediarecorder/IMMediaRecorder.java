@@ -18,16 +18,16 @@ public class IMMediaRecorder {
     private final static String TAG = "IMMediaRecorder";
 
     //音频输入-麦克风
-    public final static int AUDIO_INPUT = MediaRecorder.AudioSource.MIC;
-    public final static int AUDIO_DEFAULT = MediaRecorder.AudioSource.DEFAULT;
+    private final static int AUDIO_INPUT = MediaRecorder.AudioSource.MIC;
+    private final static int AUDIO_DEFAULT = MediaRecorder.AudioSource.DEFAULT;
 
     //采用频率
     //44100是目前的标准，但是某些设备仍然支持22050，16000，11025
-    public final static int AUDIO_SAMPLE_RATE = 44100; //44.1KHz,普遍使用的频率
+    private final static int AUDIO_SAMPLE_RATE = 44100; //44.1KHz,普遍使用的频率
 
-    public final static int SUCCESS = 0;
-    public final static int E_STATE_RECODING = 1;
-    public final static int E_UNKOWN = 2;
+    private final static int SUCCESS = 0;
+    private final static int E_STATE_RECODING = 1;
+    private final static int E_UNKOWN = 2;
 
     private static IMMediaRecorder mInstance;
 
@@ -54,9 +54,8 @@ public class IMMediaRecorder {
         return mInstance;
     }
 
-    public static String getErrorInfo(Context vContext, int vType) throws Resources.NotFoundException {
-        switch(vType)
-        {
+    private static String getErrorInfo(Context vContext, int vType) throws Resources.NotFoundException {
+        switch (vType) {
             case SUCCESS:
                 return vContext.getResources().getString(R.string.success);
             case E_STATE_RECODING:
@@ -67,6 +66,11 @@ public class IMMediaRecorder {
         }
     }
 
+    /**
+     * Begin record
+     *
+     * @return
+     */
     public int startRecordAndFile() {
         if (isRecord) {
             return E_STATE_RECODING;
@@ -94,13 +98,13 @@ public class IMMediaRecorder {
 
     public long getRecordFileSize(String path) {
         File mFile = new File(path);
-        if(!mFile.exists())
+        if (!mFile.exists()) {
             return -1;
+        }
         return mFile.length();
     }
 
     private void createMediaRecord() {
-        /* ①Initial：实例化MediaRecorder对象 */
         if (null == mMediaRecorder) {
             mMediaRecorder = new MediaRecorder();
         }
@@ -148,9 +152,10 @@ public class IMMediaRecorder {
 
     /**
      * 判断是否有外部存储设备sdcard
+     *
      * @return true | false
      */
-    public static boolean isSdcardExit(){
+    private static boolean isSdcardExit() {
         if (Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED))
             return true;
         else
@@ -159,11 +164,12 @@ public class IMMediaRecorder {
 
     /**
      * 获取编码后的AMR格式音频文件路径
+     *
      * @return
      */
-    public String getAMRFilePath() {
+    private String getAMRFilePath() {
         String audioAMRPath = "";
-        if(isSdcardExit()) {
+        if (isSdcardExit()) {
             String fileBasePath = Environment.getExternalStorageDirectory().getAbsolutePath();
             audioAMRPath = fileBasePath + "/" + mAudioAmrFileName;
         }
