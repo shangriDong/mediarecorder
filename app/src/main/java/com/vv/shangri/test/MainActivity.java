@@ -1,7 +1,7 @@
 package com.vv.shangri.test;
 
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
@@ -15,8 +15,12 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.vv.shangri.mediarecorder.IMMediaRecorder;
 import com.vv.shangri.mediarecorder.MyPlayer;
+import com.vv.shangri.mediarecorder.OnMicStatusListener;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,6 +37,11 @@ public class MainActivity extends AppCompatActivity {
     private UIHandler uiHandler;
     private UIThread uiThread;
     private String mPath = "";
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +65,10 @@ public class MainActivity extends AppCompatActivity {
         init();
         findViewByIds();
         setListeners();
+        initDate();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     @Override
@@ -86,7 +99,15 @@ public class MainActivity extends AppCompatActivity {
         btn_stop = (Button) this.findViewById(R.id.btn_stop);
         txt = (TextView) this.findViewById(R.id.text);
         btn_player = (Button) this.findViewById(R.id.btn_play);
+    }
 
+    private void initDate() {
+        IMMediaRecorder.getInstance().setMicStgatusListener(new OnMicStatusListener() {
+            @Override
+            public void onMicStatus(int db) {
+                Log.i("shangri", "db: " + db);
+            }
+        });
     }
 
     private void setListeners() {
@@ -117,9 +138,9 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-    *
-    */
-    private  void player() {
+     *
+     */
+    private void player() {
         Log.i(TAG, "player");
         if (null == mPath) {
             Log.e(TAG, "mPath = null!!!");
@@ -157,7 +178,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case FLAG_AMR:
                 IMMediaRecorder mRecord_2 = IMMediaRecorder.getInstance();
-                mResult = mRecord_2.startRecordAndFile();
+                mResult = mRecord_2.startRecord();
+
                 break;
         }
         if (mResult == IMMediaRecorder.getInstance().SUCCESS) {
@@ -187,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case FLAG_AMR:
                     IMMediaRecorder mRecord_2 = IMMediaRecorder.getInstance();
-                    mRecord_2.stopRecordAndFile();
+                    mRecord_2.stopRecord();
                     break;
             }
             if (uiThread != null) {
@@ -209,6 +231,46 @@ public class MainActivity extends AppCompatActivity {
     private final static int CMD_RECORDFAIL = 2001;
     private final static int CMD_STOP = 2002;
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.vv.shangri.test/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.vv.shangri.test/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
+    }
+
     class UIHandler extends Handler {
         public UIHandler() {
         }
@@ -223,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
             switch (vCmd) {
                 case CMD_RECORDING_TIME:
                     int vTime = b.getInt("msg");
-                    MainActivity.this.txt.setText("正在录音中，已录制：" + vTime + " s");
+                    MainActivity.this.txt.setText("正在录音中，已录制：" + vTime + " s" + "音量大小：" + b.getInt("db"));
                     break;
                 case CMD_RECORDFAIL:
                     int vErrorCode = b.getInt("msg");
@@ -242,8 +304,8 @@ public class MainActivity extends AppCompatActivity {
                             IMMediaRecorder mRecord_2 = IMMediaRecorder.getInstance();
                             long mSize = mRecord_2.getRecordFileSize(mRecord_2.getAMRFilePath());
                             MainActivity.this.txt.setText("录音已停止.录音文件:"
-                                                          + mRecord_2.getAMRFilePath()
-                                                          + "\n文件大小：" + mSize);
+                                    + mRecord_2.getAMRFilePath()
+                                    + "\n文件大小：" + mSize);
                             mPath = mRecord_2.getAMRFilePath();
                             break;
                     }
@@ -274,8 +336,11 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "mThread........" + mTimeMill);
                 Message msg = new Message();
                 Bundle b = new Bundle();// 存放数据
+                IMMediaRecorder mRecord_2 = IMMediaRecorder.getInstance();
+
                 b.putInt("cmd", CMD_RECORDING_TIME);
                 b.putInt("msg", mTimeMill);
+                b.putInt("db", 1);
                 msg.setData(b);
                 if (null == msg) {
                     Log.e(TAG, "msg = null!!");
@@ -285,4 +350,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+
 }
